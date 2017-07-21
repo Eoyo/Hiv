@@ -71,12 +71,14 @@ var doa = new Dom({
     }
 })
 ```
-## this project is developing .at this stage ,there are there globle partner:
-`class Data ,class Dom,Function For(,)`
+## this project is developing .at this stage ,there are three globle partner:
+```js
+class Data ,class Dom,Function For(,)
+```
 
 ## At future ,your would see more powerful feature of Hiv;
 tell you some hints :
-such as:function builder (wihch is occured at line of textture input)
-event builder (????)
-js.Sp() //super selector,temp events manager;
+such as:function builder
+,event builder 
+, js.Sp() 
 more detail at : my blog
