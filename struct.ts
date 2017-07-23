@@ -35,7 +35,6 @@ var dtt = {
 }
 var mk = new Data(dtt);
 
-
 function IF(...args) { }
 // var div = MarkDown.dom.div[0];
 var books = For(mk.books, (a, b) => {

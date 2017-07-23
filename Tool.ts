@@ -1038,7 +1038,7 @@ var Tool = {
                 }
             }
             , change() {
-                var lastOne = null
+                var lastOne = {}
                 var tick = {}
                 var wayMap = null
                 var leaf = {

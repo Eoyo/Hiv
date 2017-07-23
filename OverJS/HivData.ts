@@ -73,7 +73,7 @@ type getset = {
     set: (any) => void;
 }
 type setData<T, K extends keyof T> = {
-    [P in K]: setData<T[P], keyof T[P]> & getset
+    [P in K]: setData<T[P], keyof T[P]> & getset | any
 }
 type DataProp<T> = {
     srData: T;
@@ -436,59 +436,59 @@ var ts = {
     }
 }
 js.init();
-class SpecailFunc {
-    domRus: DomRus
-    ele: HTMLElement
-    constructor(domRus?: DomRus, ele?: HTMLElement) {
-        if (domRus && ele) {
-            this.init(ele, domRus);
-        }
-    }
-    init(ele: HTMLElement, domRus: DomRus) {
-        this.domRus = domRus;
-        this.ele = ele;
-    }
-    do(x: SpecailProp) {
-        var has = this.domRus.has;
-        var hasx = has[x];
-        switch (x) {
-            case "on":
-                var onObj = this.domRus.has[x]
-                //添加事件监听
-                var rusObj = new ArgsEvent(onObj, <object>has.data, this.ele)
-                return rusObj;
+// class SpecailFunc {
+//     domRus: DomRus
+//     ele: HTMLElement
+//     constructor(domRus?: DomRus, ele?: HTMLElement) {
+//         if (domRus && ele) {
+//             this.init(ele, domRus);
+//         }
+//     }
+//     init(ele: HTMLElement, domRus: DomRus) {
+//         this.domRus = domRus;
+//         this.ele = ele;
+//     }
+//     do(x: SpecailProp) {
+//         var has = this.domRus.has;
+//         var hasx = has[x];
+//         switch (x) {
+//             case "on":
+//                 var onObj = this.domRus.has[x]
+//                 //添加事件监听
+//                 var rusObj = new ArgsEvent(onObj, <object>has.data, this.ele)
+//                 return rusObj;
 
-            // case "data":
-            // break;
+//             // case "data":
+//             // break;
 
-            case "style":
-                Tool.extend(this.ele.style, this.domRus.has[x]);
-                break;
+//             case "style":
+//                 Tool.extend(this.ele.style, this.domRus.has[x]);
+//                 break;
 
-            case '$':
-                this.ele.innerHTML += this.domRus.has[x]
-                break;
+//             case '$':
+//                 this.ele.innerHTML += this.domRus.has[x]
+//                 break;
 
-            case "args":
-                // for (let i in has.attr){
-                //     console.log("setter")
-                //     Object.defineProperty(this.ele,i,{
-                //         enumerable: true,
-                //         configurable: true,
-                //         set (v){
-                //             console.log("good")
-                //             has.attr[i].set(v);
-                //         }
-                //         ,get(){
-                //             console.log("good")
-                //             return has.attr[i].get();
-                //         }
-                //     })
-                // }
-                break;
-        }
-    }
-}
+//             case "args":
+//                 // for (let i in has.attr){
+//                 //     console.log("setter")
+//                 //     Object.defineProperty(this.ele,i,{
+//                 //         enumerable: true,
+//                 //         configurable: true,
+//                 //         set (v){
+//                 //             console.log("good")
+//                 //             has.attr[i].set(v);
+//                 //         }
+//                 //         ,get(){
+//                 //             console.log("good")
+//                 //             return has.attr[i].get();
+//                 //         }
+//                 //     })
+//                 // }
+//                 break;
+//         }
+//     }
+// }
 class Prop {
     id: string
     className: string
@@ -497,6 +497,7 @@ class Prop {
     cmd: string[]
     name: string
     attr: Array<attrOnep>
+    Children: Prop
     constructor(str: string) {
         var arr = str.split(',');
         var sar: string[]
@@ -545,6 +546,13 @@ class Prop {
                         state = "attr"; continue;
                     }
                     if (sar[x] == ':') { frequency = 0; state = "name"; continue; }
+                    if (sar[x] == ">") {
+                        var childrenStr = sar.slice(x + 1).join("");
+                        if (childrenStr) {
+                            this.Children = new Prop(childrenStr)
+                        }
+                        return this;
+                    }
                     break;
 
                 case "name":
@@ -813,8 +821,15 @@ var Hif = {
         console.warn(str)
         throw new Error(str)
     }
-    , doSomething(fr: string, job: string) {
-        console.log("this is watch for : " + fr + ", and will do : Array." + job);
+    , doSomething(fr, job) {
+        // switch(type){
+        //     case "push":
+        //     case "unshift":
+
+        //     break;
+        // }
+
+        console.log("this is watch for : ", fr, "and will do : Array." + job);
     }
     , Binder: {
         initVerge(srObj: object, srkey: string) {
@@ -849,20 +864,30 @@ var Hif = {
     , createFollower(obj, key) {
 
     }
+    , getClass(classObj) {
+        var str = ""
+        for (var oneclass in classObj) {
+            str += classObj[oneclass] ? oneclass + " " : ""
+        }
+        return str;
+    }
+    , target: <any>null
     , Spf: (function initSpecaiFunc() {
-        var domRus, ele: ele
+        var domRus, srcel: ele
         function init(srcele: HTMLElement, srcdomRus: DomRus) {
             domRus = srcdomRus;
-            ele = srcele;
+            srcel = srcele;
             return func;
         }
         function check() {
 
         }
         var func = {
-            do(x: SpecailProp) {
+            do(x: SpecailProp ,index) {
                 var has = domRus.has;
                 var hasx = has[x];
+                var ele = srcel;
+                Hif.setValIndex = index;
                 switch (x) {
                     case "on":
                         var onObj = domRus.has[x]
@@ -885,18 +910,123 @@ var Hif = {
                         break;
 
                     case "args":
+                        //argsset$$
                         for (var name in hasx) {
                             var aiName = el.refine("args", name)
+                            switch (aiName) {
+                                case "model":
+                                    Hif.bindinVoker(<HTMLInputElement>ele, hasx.model)
+                                    // console.log(ele)
+                                    continue;
+                                case "show":
+                                    switch (typeof hasx[name]) {
+                                        case "function":
+                                            js.Sp(Hif.target).on("somethingChange", function () {
+                                                var res = hasx[name]()
+                                                if (res) {
+                                                    ele.style.visibility = "visible"
+                                                } else {
+                                                    ele.style.visibility = "hidden"
+                                                }
+                                            })
+                                            break;
+
+                                        default:
+                                            var res = hasx[name]
+                                            if (res) {
+                                                ele.style.visibility = "visible"
+                                            } else {
+                                                ele.style.visibility = "hidden"
+                                            }
+                                            break;
+                                    }
+                                    continue;
+                                case "focus":
+                                    switch (typeof hasx[name]) {
+                                        case "function":
+                                            js.Sp(Hif.target).on("somethingChange", function () {
+                                                var res = hasx[name]()
+                                                if (res) {
+                                                    ele.focus();
+                                                }
+                                            })
+                                            break;
+
+                                        default:
+                                            var res = hasx[name]
+                                            console.log("it is better to make focus prop as a function")
+                                            if (res) {
+                                                ele.focus();
+                                            }
+                                            break;
+                                    }
+                                    continue;
+                                case "class":
+                                    if (typeof hasx[name] == "object") {
+
+                                        var classObjhere = hasx.class
+                                        var classCopy = {};
+                                        for (var some in classObjhere) {
+                                            if (typeof classObjhere[some] === "function") {
+                                                js.Sp(Hif.target).on("somethingChange", function () {
+                                                    classCopy[some] = classObjhere[some].bind(ele)()
+                                                })
+                                            } else {
+                                                Hif.setVal(classCopy, some, classObjhere[some]);
+                                            }
+                                        }
+                                        // js.Sp(classCopy).on("change",function (){
+                                        //     ele.className = Hif.getClass(classCopy);
+                                        // })
+
+
+                                        js.Sp(Hif.target).on("somethingChange", function () {
+                                            ele.className = Hif.getClass(classCopy);
+                                        })
+                                        continue;
+                                    }
+
+                                    //else to normal Hif.setVal
+                            }
                             Hif.setVal(ele, aiName, hasx[name])
                         }
                         break;
                 }
+                Hif.setValIndex = ""
             }
         }
         return init;
     })()
     , Cac: new js.Cacher(100)
-
+    , checkEleValue(ele) {
+        var targN = ele.tagName;
+        if (targN == "INPUT" || targN == "TEXTAREA") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    , bindinVoker(ele: HTMLInputElement, model) {
+        switch (ele.type) {
+            case "checkbox":
+                Hif.setVal(ele, "checked", model)
+                ele.addEventListener("click", function (e: any) {
+                    model.set(e.target.checked)
+                })
+                break;
+            case "text":
+                Hif.setVal(ele, "value", model)
+                ele.addEventListener("input", function (e: any) {
+                    model.set(e.target.value)
+                })
+                break;
+        }
+    }
+    , setBubble(srcObj, parent) {
+        js.Sp(srcObj).on("bubble", function (e) {
+            js.Sp(Hif.target).notify("somethingChange")
+        })
+    }
     , viewDom(ele: Element, padding) {
         var len = ele.children.length;
         var str = "\n"
@@ -910,6 +1040,7 @@ var Hif = {
         }
         return ele.tagName.toLowerCase();
     }
+    , setValIndex : ""
     , setVal(ele: Element | any, key, value) {
         if (value instanceof DataLeaf) {
             js.Sp(ele, key).listenTo(value, "set");
@@ -925,29 +1056,36 @@ var Hif = {
                         ts.error("ArrayType")
                     } else {
                         value.__map_domList__.forEach(function (a) {
-                            ele.appendChild(a.html)
+                            var len = a.html.length
+                            for (var i = 0; i < len; i++) {
+                                ele.appendChild(a.html[i])
+                            }
                         })
                     }
-
                 }
                 js.Sp(value).on("domCreated", setArrayDom);
                 setArrayDom();
                 return;
             }
         }
+        if(value instanceof Array){
+            var i = Hif.setValIndex;
+            if(i!==""){
+                ele[key] = value[i];
+            }
+            return ;
+        } 
+
+        //the simplest state
         ele[key] = value;
     }
-
-}
-class Hiv {
-    dom: any
-    constructor(ojs: HivOp) {
-        var Evm = new EventManager();
-        var specailFunc = new SpecailFunc();
-        var self = this;
-        self.dom = {};
-
+    , setChildren(ele: ele, array) {
+        var len = array.length
+        for (var i = 0; i < len; i++) {
+            ele.appendChild(array[i])
+        }
     }
+
 }
 
 class EventFunc {
@@ -980,7 +1118,7 @@ class ArgsEvent {
         } else {
             this.args = {};
         }
-        this.args.dom = this.el;
+        // this.args.dom = this.el;
     }
     attachTo(el) {
         this.el = el;
@@ -1010,6 +1148,13 @@ class DataLeaf {
         // js.def(this, "srData", dt);
         // var mp = Hif.js.Map(this,id);
         js.defineGetValue(this, "__data_id__", id);
+        // js.Sp(this).on("bubble", function (e) {
+        //     if (parent.root !== id) {
+        //         js.Sp(parent).notify("bubble", e);
+        //     }
+        //     js.Sp(parent).notify("somethingChange", e);
+        // })
+        Hif.setBubble(this, parent);
     }
 }
 
@@ -1031,6 +1176,7 @@ class Data {
             js.def(this, "nodeName", "root");
             js.def(this, "root", id);
             parent = this;
+            Hif.target = this;
         }
         else {
             js.def(this, "parent", parent);
@@ -1040,9 +1186,13 @@ class Data {
         // var mp = Hif.js.Map(this,id);
         js.defineGetValue(this, "__data_id__", id);
 
-        js.Sp(this).on("bublle", function (e) {
-            js.Sp(parent).notify("bublle", e);
-        })
+        // js.Sp(this).on("bubble", function (e) {
+        //     if (parent.root !== id) {
+        //         js.Sp(parent).notify("bubble", e);
+        //     }
+        //     js.Sp(parent).notify("somethingChange", e);
+        // })
+        Hif.setBubble(this, parent);
 
         if (Hif.js.isPrimitive(dt)) {
             Hif.warn("can't init Data object from a primitive type data")
@@ -1109,9 +1259,14 @@ class Data {
         //set array function to this[x];
         for (let arrfunc of Hif.js.arrayFuncs) {
             vm[x][arrfunc] = function (...args) {
-                Hif.doSomething("array", arrfunc);
+                // Hif.doSomething(vm[x],arrfunc);
                 dt[x][arrfunc](...args);
-                js.Sp(vm[x]).notify("reArray");
+                if (arrfunc == "push" || arrfunc == "unshift") {
+                    Data.reReadArray(dt, vm, x, id)
+                }
+                else {
+                    js.Sp(vm[x]).notify("reArray");
+                }
             }
         }
         return vm[x]
@@ -1126,12 +1281,12 @@ class Data {
                     return;
                 }
                 vm[x][i] = dtx[i];
-                continue;
             } else {
                 vm[x][i] = new Data(dtx[i], id, vm[x], i)
                 js.def(dtx[i], "__map_data__", vm[x][i])
                 dtx[i] = vm[x][i];
             }
+            dtx[i].nodeName = i;
         }
         js.Sp(vm[x]).notify("reArrayDone");
     }
@@ -1185,7 +1340,7 @@ class Dep {
     jobs = {
         "set": false
         , "change": false
-        , "bublle": false
+        , "bubble": false
     }
     constructor(forObj) {
         this.id = gr.uid++;
@@ -1213,19 +1368,19 @@ class Dep {
             data: (this.forObj.get && this.forObj.get()) || ""
             , from: this.forObj
         }
-        switch (type) {
-            case "set":
-                this.do(ev)
-                break;
-            case "change":
-                break;
-
-            default:
-                this.do(ev);
+        // switch (type) {
+        //     case "set":
+        //     case "change":
+        //     case "bubble":
+        //     case "array":
+        //     break;
+        // }
+        this.do(ev);
+        if (!Dep.isToIgnore(type)) {
+            this.emit("bubble", ev)
         }
     }
     do(ev: DepEv) {
-
         var evty = this.doingEv
         var jobs = this.jobs;
         function workList() {
@@ -1242,12 +1397,25 @@ class Dep {
             js.nextTick(workList, this);
         }
     }
+    static toIgnore = {
+        bubble: true
+        , reArray: true
+        , reArrayDone: true
+    }
+    static isToIgnore(type) {
+        if (Dep.toIgnore[type]) {
+            return true;
+        }
+        return false;
+    }
 }
 
 class Dom {
-    html: ele
+    html: ele | ele[]
     domRus: DomRus
-    args = {}
+    args: {
+        [key: string]: ele[]
+    } = {}
     constructor(jsDom: any) {
         // var Evm = new EventManager();
         var self = this;
@@ -1266,71 +1434,92 @@ class Dom {
             }
             //create docs;
             for (let x in dom) {
-
                 if (Dom.is_specail(x)) {
                     rus.has[x] = dom[x];
                     continue;
                 }
-                var prop = Hif.Cac.do(x, Prop)
+                //avoid duplitly analizing
+                var prop: Prop = Hif.Cac.do(x, Prop)
 
                 /**Prop.name 生成记录当前的 ele 的变量
-                 * 
-                 * 1.如果有多个,则自动变为数组
-                 *  
+                 * it is an ele[]
                  */
-                var name = prop.name;
-
                 var domRus: DomRus;
                 var dnext = dom[x]
-                switch (true) {
-                    case dnext instanceof Data:
-                        var tmpele = Hif.creatEle(prop);
-                        Hif.setVal(tmpele,"",dnext)
-                        rus.docs.push(tmpele);
-                        break;
-                    case typeof dnext == "object":
-                        for (let j = 0; j < prop.num; j++) {
-                            //create num 个 ele
-                            let ele = Hif.creatEle(prop);
-                            rus.docs.push(ele);
-                            //判断name 是否存在于this.dom上
-                            if (name)
-                                if (self.args[name]) {
-                                    self.args[name].push(ele);
-                                } else {
-                                    self.args[name] = [ele];
-                                }
-
-                            //解析了多遍.
-                            // /**
-                            //  * 事件内部代理
-                            //  * HTML代码的树
-                            //  * Dom 树抓取
-                            //  */
-
-                            /**
-                             * domRus.has 中返回 specials
-                             */
-                            domRus = getDom(dnext)
-                            Dom.initSpecail(ele, domRus);
-                            Hif.addDocs(ele, domRus)
+                //判断name 是否存在于this.dom上
+                function addValueName(name, oneEle) {
+                    if (name) {
+                        if (self.args[name]) {
+                            self.args[name].push(oneEle);
+                        } else {
+                            self.args[name] = [oneEle];
                         }
-                        break;
+                    }
+                }
+                function workForChildren(chilProp: Prop, parent: ele, index) {
+                    for (let i = 0; i < chilProp.num; i++) {
+                        let oneEle = Hif.creatEle(chilProp);
 
+                        addValueName(chilProp.name, oneEle);
+
+                        parent.appendChild(oneEle);
+
+                        if (chilProp.Children) {
+                            workForChildren(chilProp.Children, oneEle, index*chilProp.num + i)
+                        } else {
+                            workForFinalEle(chilProp, oneEle, index*chilProp.num + i)
+                        }
+                    }
+                }
+                function workForFinalEle(fprop, fEle, index) {
+                    switch (true) {
+                        case js.isPrimitive(dnext):
+                            var tmpele = Hif.creatEle(fprop);
+                            Hif.setVal(tmpele, "innerHTML", dnext)
+                            rus.docs.push(tmpele);
+                            break;
+                        case dnext instanceof ArrayData:
+                            var tmpele = Hif.creatEle(fprop);
+                            Hif.setVal(tmpele, "", dnext)
+                            rus.docs.push(tmpele);
+                            break;
+                        case typeof dnext == "object":
+                            domRus = getDom(dnext)
+                            Dom.initSpecail(fEle, domRus,index);
+                            Hif.addDocs(fEle, domRus)
+                            break;
+                    }
+                }
+
+                //analy prop
+                for (let j = 0; j < prop.num; j++) {
+                    let oneEle = Hif.creatEle(prop);
+                    //want to return docs
+                    rus.docs.push(oneEle);
+
+                    addValueName(prop.name, oneEle)
+
+                    if (prop.Children) {
+                        workForChildren(prop.Children, oneEle, j)
+                    } else {
+                        //every times create new dom node
+                        workForFinalEle(prop, oneEle, j)
+                    }
                 }
             }
             return rus;
         }
-        this.html = document.createElement("div")
         this.domRus = getDom(jsDom)
-        Hif.addDocs(this.html, this.domRus);
+        this.html = this.domRus.docs;
     }
-    static initSpecail(ele: HTMLElement, domRus: DomRus) {
+
+    //index use to get one from array value 
+    static initSpecail(ele: HTMLElement, domRus: DomRus,index) {
         var to = Hif.Spf(ele, domRus)
         if (domRus) {
             for (let x in domRus.has) {
                 if (domRus.has[x] !== null) {
-                    to.do(<SpecailProp>x);
+                    to.do(<SpecailProp>x , index);
                 }
             }
         }
@@ -1347,7 +1536,22 @@ class Dom {
     }
 }
 
-function For<T>(from:T, cb: callBack): setData<T, keyof T>{
+class Hiv {
+    constructor(jsHiv) {
+        Hif.target = jsHiv.data;
+
+        var dom = new Dom(jsHiv.dom)
+
+
+
+        //deal with for {}
+    }
+}
+
+type domFunc = {
+    [key: string]: (this: ele) => void
+}
+function For<T>(from: T, cb: callBack | domFunc): setData<T, keyof T> {
     switch (true) {
         case Array.isArray(from):
             from.forEach()
